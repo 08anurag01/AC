@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Adaptive Online Examination System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2ff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 40px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #aaa;
+        }
+
+        h1 {
+            text-align: center;
+            color: #263c91;
+        }
+
+        input, button {
+            padding: 12px;
+            margin-top: 12px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #263c91;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #17276c;
+        }
+
+        .option {
+            display: block;
+            background: #eef2ff;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #exam, #result {
+            display: none;
+        }
+
+        .feedback {
+            background: #e5edff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Adaptive Online Exam</h1>
+    <p style="text-align:center">
+        Student Performance Analysis System
+    </p>
+
+    <div id="start">
+        <h3>Student Registration</h3>
+
+        <input type="text" id="studentName"
+               placeholder="Enter Student Name">
+
+        <button onclick="startExam()">
+            Start Examination
+        </button>
+    </div>
+
+    <div id="exam">
+
+        <h3 id="welcome"></h3>
+
+        <p>
+            Difficulty:
+            <b id="level"></b>
+        </p>
+
+        <p id="progress"></p>
+
+        <h3 id="question"></h3>
+
+        <div id="options"></div>
+
+        <button onclick="submitAnswer()">
+            Submit Answer
+        </button>
+
+        <p id="message"></p>
+
+    </div>
+
+    <div id="result">
+
+        <h2>Examination Result</h2>
+
+        <h3 id="resultName"></h3>
+
+        <p id="score"></p>
+        <p id="percentage"></p>
+        <p id="accuracy"></p>
+        <p id="finalLevel"></p>
+
+        <div class="feedback">
+            <h3>Personalized Feedback</h3>
+            <p id="feedback"></p>
+        </div>
+
+        <button onclick="location.reload()">
+            Take Another Exam
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+const questions = {
+
+Easy: [
+    {
+        q: "What is the full form of CPU?",
+        options: [
+            "Central Processing Unit",
+            "Computer Personal Unit",
+            "Central Program Unit",
+            "Control Processing Unit"
+        ],
+        answer: 0
+    },
+    {
+        q: "Which language is used for web page structure?",
+        options: ["CSS", "HTML", "Python", "C"],
+        answer: 1
+    },
+    {
+        q: "Which symbol is used for comments in C?",
+        options: ["//", "##", "<>", "**"],
+        answer: 0
+    }
+],
+
+Medium: [
+    {
+        q: "Which data structure follows FIFO?",
+        options: ["Stack", "Queue", "Tree", "Graph"],
+        answer: 1
+    },
+    {
+        q: "Which keyword is used to define a function in C?",
+        options: ["function", "define", "No special keyword", "method"],
+        answer: 2
+    },
+    {
+        q: "What is the time complexity of binary search?",
+        options: ["O(n)", "O(log n)", "O(n²)", "O(1)"],
+        answer: 1
+    }
+],
+
+Hard: [
+    {
+        q: "Which algorithm is used to find the shortest path?",
+        options: [
+            "Bubble Sort",
+            "Dijkstra Algorithm",
+            "Linear Search",
+            "Selection Sort"
+        ],
+        answer: 1
+    },
+    {
+        q: "Which memory is volatile?",
+        options: ["ROM", "Hard Disk", "RAM", "SSD"],
+        answer: 2
+    },
+    {
+        q: "Which data structure is used in recursion?",
+        options: ["Queue", "Stack", "Graph", "Array"],
+        answer: 1
+    }
+]
+
+};
+
+let student = "";
+let difficulty = "Easy";
+let index = 0;
+let score = 0;
+let correct = 0;
+let attempted = 0;
+let currentQuestion;
+let questionList = [];
+let currentDifficulty = [];
+
+function startExam() {
+
+    student = document.getElementById("studentName").value.trim();
+
+    if (student === "") {
+        alert("Please enter your name!");
+        return;
+    }
+
+    document.getElementById("start").style.display = "none";
+    document.getElementById("exam").style.display = "block";
+
+    document.getElementById("welcome").innerText =
+        "Welcome, " + student;
+
+    loadQuestion();
+}
+
+function loadQuestion() {
+
+    if (index >= 9) {
+        showResult();
+        return;
+    }
+
+    currentDifficulty = questions[difficulty];
+
+    currentQuestion = currentDifficulty[
+        Math.floor(Math.random() * currentDifficulty.length)
+    ];
+
+    document.getElementById("level").innerText = difficulty;
+
+    document.getElementById("progress").innerText =
+        "Question " + (index + 1) + " of 9";
+
+    document.getElementById("question").innerText =
+        currentQuestion.q;
+
+    let optionsHTML = "";
+
+    currentQuestion.options.forEach((option, i) => {
+
+        optionsHTML += `
+            <label class="option">
+                <input type="radio" name="answer" value="${i}"
+                style="width:auto">
+                ${option}
+            </label>
+        `;
+
+    });
+
+    document.getElementById("options").innerHTML = optionsHTML;
+    document.getElementById("message").innerText = "";
+}
+
+function submitAnswer() {
+
+    let selected = document.querySelector(
+        'input[name="answer"]:checked'
+    );
+
+    if (!selected) {
+        alert("Please select an answer!");
+        return;
+    }
+
+    attempted++;
+
+    if (Number(selected.value) === currentQuestion.answer) {
+
+        score += 10;
+        correct++;
+
+        document.getElementById("message").innerText =
+            "Correct Answer! Difficulty increased.";
+
+        if (difficulty === "Easy")
+            difficulty = "Medium";
+
+        else if (difficulty === "Medium")
+            difficulty = "Hard";
+
+    } else {
+
+        document.getElementById("message").innerText =
+            "Incorrect Answer! Difficulty decreased.";
+
+        if (difficulty === "Hard")
+            difficulty = "Medium";
+
+        else if (difficulty === "Medium")
+            difficulty = "Easy";
+    }
+
+    index++;
+
+    setTimeout(loadQuestion, 700);
+}
+
+function showResult() {
+
+    document.getElementById("exam").style.display = "none";
+    document.getElementById("result").style.display = "block";
+
+    let percentage = (score / 90) * 100;
+    let accuracy = (correct / attempted) * 100;
+
+    document.getElementById("resultName").innerText =
+        "Student: " + student;
+
+    document.getElementById("score").innerText =
+        "Total Marks: " + score + " / 90";
+
+    document.getElementById("percentage").innerText =
+        "Percentage: " + percentage.toFixed(2) + "%";
+
+    document.getElementById("accuracy").innerText =
+        "Accuracy: " + accuracy.toFixed(2) + "%";
+
+    document.getElementById("finalLevel").innerText =
+        "Final Difficulty Level: " + difficulty;
+
+    let feedback;
+
+    if (percentage >= 80) {
+        feedback =
+        "Excellent performance! You have a strong understanding. Try advanced-level questions.";
+    }
+    else if (percentage >= 50) {
+        feedback =
+        "Good effort! Revise difficult topics and practice more questions to improve.";
+    }
+    else {
+        feedback =
+        "You need more practice. Start with basic concepts and gradually improve your skills.";
+    }
+
+    document.getElementById("feedback").innerText = feedback;
+}
+
+</script>
+
+</body>
+</html>
